@@ -55,7 +55,7 @@ class CostumRequestHandler(SimpleHTTPRequestHandler):
 	def get_asset(self, filename):
 		data = ""
 		try:
-			f = open(os.path.join(self.asset_path, filename))
+			f = open(os.path.join(self.asset_path, filename), 'r', encoding='utf-8')
 			data = f.read()
 			f.close()
 			return data

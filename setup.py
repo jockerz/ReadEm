@@ -24,6 +24,8 @@ with open(path.join(here, 'ReadEm', '__version__.py'), 'r', 'utf-8') as f:
 setup(
     name=about['__title__'], 
     version=about['__version__'],
+    packages=find_packages(exclude=['contrib', 'docs', 'tests']),
+    include_package_data=True,
     description=about['__description__'],
     long_description=long_description,
     url=about['__url__'],
@@ -45,22 +47,16 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: HTTP Servers',
         'Topic :: Text Processing',
         'Topic :: Utilities',
-
-        # Pick your license as you wish
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
-
-        'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
     ],
 
     keywords='readme markdown documentation',  # Optional
-    packages=find_packages(exclude=['contrib', 'docs', 'tests']),  # Required
 
     install_requires=['Markdown'],  # Optional
     python_requires='>=3',
-    include_package_data=True,
     #exclude_package_data={'Note': ['Note']},
 
     # List additional groups of dependencies here (e.g. development
