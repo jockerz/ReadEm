@@ -50,17 +50,6 @@ coverage.xml
 *.mo
 *.pot
 
-# Django stuff:
-*.log
-local_settings.py
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
 # Sphinx documentation
 docs/_build/
 
@@ -99,3 +88,6 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+NOTE
+ReadEm/__version__.py
