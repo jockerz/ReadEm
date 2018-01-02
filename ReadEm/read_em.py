@@ -83,6 +83,7 @@ class CostumRequestHandler(SimpleHTTPRequestHandler):
 		title_path = self.path.strip()
 		if title_path[0] == "/":
 			title_path = title_path[1:]
+			title_path, _ = posixpath.splitext(title_path)
 
 		data = HTML_TEMPLATE.format(
 			markdown_title = title_path, 
@@ -148,8 +149,7 @@ class CostumRequestHandler(SimpleHTTPRequestHandler):
 			
 			_, ext = posixpath.splitext(fullname)
 			if "md" in ext or "markdown" in ext:
-				displayname = c.replace(".md","")
-				displayname = c.replace(".markdown","")
+				displayname = c.replace(ext,"")
 				is_good = True
 
 			if not is_good:
