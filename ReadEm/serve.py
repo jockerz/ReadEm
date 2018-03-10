@@ -84,6 +84,7 @@ class CostumRequestHandler(SimpleHTTPRequestHandler):
 		if title_path[0] == "/":
 			title_path = title_path[1:]
 			title_path, _ = posixpath.splitext(title_path)
+			title_path = urllib.parse.unquote(title_path)
 
 		data = HTML_TEMPLATE.format(
 			markdown_title = title_path, 
@@ -121,22 +122,17 @@ class CostumRequestHandler(SimpleHTTPRequestHandler):
 
 		try:
 			contents = os.listdir(os.path.dirname(path))
+			if os.path.dirname(path) != self.base_path:
+				contents.append("..")
 		except OSError as e:
 			return ""
 		contents.sort(key=lambda a: a.lower())
 
-		try:
-			displaypath = urllib.parse.unquote(self.path, 
-				errors='surrogatepass')
-		except UnicodeDecodeError:
-			displaypath = urllib.parse.unquote(path)
-		displaypath = html.escape(displaypath)
-
 		enc = sys.getfilesystemencoding()
 		
 		for c in contents:
-			fullname = os.path.join(path, c)
-			displayname = linkname = c
+			fullname = os.path.join(os.path.dirname(self.path), c)
+			displayname = c
 			is_good = False
 			
 			if os.path.isdir(c):
@@ -149,12 +145,14 @@ class CostumRequestHandler(SimpleHTTPRequestHandler):
 			
 			_, ext = posixpath.splitext(fullname)
 			if "md" in ext or "markdown" in ext:
-				displayname = c.replace(ext,"")
+				displayname = c.replace(ext, "")
 				is_good = True
 
 			if not is_good:
 				continue
 			
+			c = os.path.join(os.path.dirname(self.path), c)
+
 			menu.append(li_template.format(
 				urllib.parse.quote(c, errors='surrogatepass'), 
 				html.escape(displayname)))
@@ -167,9 +165,13 @@ class CostumRequestHandler(SimpleHTTPRequestHandler):
 		if file requested is markdown file,
 		load it using markdown_to_html method
 		"""
-		urlparts = urllib.parse.urlsplit(self.path)
-		request_file_path = urlparts.path
 		path = self.translate_path(self.path)
+		if os.path.isdir(path):
+			readme_file = os.path.join(path, "README.md")
+			if os.path.exists(readme_file):
+				self.path = os.path.relpath(readme_file)
+		path = self.translate_path(self.path)
+
 		if (self.path.endswith("md") or \
 			self.path.endswith("markdown")) and \
 			os.path.exists(path):
