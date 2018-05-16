@@ -15,12 +15,11 @@ Markdown files on current directory will be shown on navbar menu. :)
 $ pip3 install ReadEm
 ```
 
-
 ## Run
 
 ```bash
-ON_A_DIRECTORY: $ python3 -m ReadEm.serve -h
-usage: .py [-h] [--bind ADDRESS] [port]
+ON_A_DIRECTORY: $ python3 -m ReadEm.read_em -h
+usage: read_em.py [-h] [--bind ADDRESS] [port]
 
 positional arguments:
   port                  Specify alternate port [default: 8000]
@@ -30,7 +29,7 @@ optional arguments:
   --bind ADDRESS, -b ADDRESS
                         Specify alternate bind address [default: 127.0.0.1]
 
-ON_A_DIRECTORY: $ python3 -m ReadEm.serve
+ON_A_DIRECTORY: $ python3 -m ReadEm.read_em
 Listening on 127.0.0.1:8000
 Press CTRL+c to stop
 127.0.0.1 - - [22/Dec/2017 14:24:40] "GET / HTTP/1.1" 200 -
@@ -42,3 +41,4 @@ Press CTRL+c to stop
 
 - [GitHub Markdown CSS](https://github.com/sindresorhus/github-markdown-css)
 - [Python Markdown](https://python-markdown.github.io/)
+

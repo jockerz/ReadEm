@@ -15,7 +15,6 @@ Markdown files on current directory will be shown on navbar menu. :)
 $ pip3 install ReadEm
 ```
 
-
 ## Run
 
 ```bash
@@ -42,7 +41,4 @@ Press CTRL+c to stop
 
 - [GitHub Markdown CSS](https://github.com/sindresorhus/github-markdown-css)
 - [Python Markdown](https://python-markdown.github.io/)
-
-
-## License
 

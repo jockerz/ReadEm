@@ -167,9 +167,18 @@ class CostumRequestHandler(SimpleHTTPRequestHandler):
 		"""
 		path = self.translate_path(self.path)
 		if os.path.isdir(path):
-			readme_file = os.path.join(path, "README.md")
-			if os.path.exists(readme_file):
-				self.path = os.path.relpath(readme_file)
+			readme_file1 = os.path.join(path, "README.md")
+			readme_file2 = os.path.join(path, "readme.md")
+			readme_file3 = os.path.join(path, "README.markdown")
+			readme_file4 = os.path.join(path, "readme.markdown")
+			if os.path.exists(readme_file1):
+				self.path = os.path.relpath(readme_file1)
+			elif os.path.exists(readme_file2):
+				self.path = os.path.relpath(readme_file2)
+			elif os.path.exists(readme_file3):
+				self.path = os.path.relpath(readme_file3)
+			elif os.path.exists(readme_file3):
+				self.path = os.path.relpath(readme_file3)
 		path = self.translate_path(self.path)
 
 		if (self.path.endswith("md") or \
