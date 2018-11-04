@@ -87,12 +87,11 @@ class CostumRequestHandler(SimpleHTTPRequestHandler):
 			title_path = urllib.parse.unquote(title_path)
 
 		data = HTML_TEMPLATE.format(
-			markdown_title = title_path, 
+			markdown_title = title_path,
 			markdown_content = markdown(data, extensions=[
 				'attr_list',	# {: #someid .someclass somekey='some value' }
 				'fenced_code', 	# github style syntax highlighting
-				'smarty',		
-				'smart_strong', # __strong__
+				'smarty',
 				'tables',
 			]),
 			javascript = js_data,

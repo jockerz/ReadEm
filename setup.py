@@ -22,7 +22,7 @@ with open(path.join(here, 'ReadEm', '__version__.py'), 'r', 'utf-8') as f:
     exec(f.read(), about)
 
 setup(
-    name=about['__title__'], 
+    name=about['__title__'],
     version=about['__version__'],
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     include_package_data=True,
