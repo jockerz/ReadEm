@@ -89,5 +89,6 @@ ENV/
 # mypy
 .mypy_cache/
 
+.idea/
 NOTE
 ReadEm/__version__.py

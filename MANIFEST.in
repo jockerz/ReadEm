@@ -3,3 +3,4 @@ include LICENSE.txt
 include README
 
 recursive-include ReadEm/assets *
+recursive-include ReadEm/templates *

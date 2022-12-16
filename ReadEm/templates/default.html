@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{markdown_title}</title>
+  <style>{style}</style>
+</head>
+<body>
+  <div id="mySidenav" class="sidenav">
+    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+    {menu}
+    <hr/>
+    <small>
+      <a class="repo-link" href="https://github.com/jockerz/ReadEm">About</a>
+    </small>
+  </div>
+  <span class="navbar" style="font-size:30px;cursor:pointer" onclick="openNav()">
+    <div class="main" style="padding: 10px;">
+       &#9776; Menu
+    </div>
+  </span>
+  <div class="main">
+    <div class="markdown-body" id="content">
+      {markdown_content}
+    </div>
+  </div>
+  {javascript}
+</body>
+</html>

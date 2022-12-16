@@ -18,7 +18,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 about = {}
-with open(path.join(here, 'ReadEm', '__version__.py'), 'r', 'utf-8') as f:
+with open(path.join(here, '__version__.py'), 'r', 'utf-8') as f:
     exec(f.read(), about)
 
 setup(
@@ -28,46 +28,36 @@ setup(
     include_package_data=True,
     description=about['__description__'],
     long_description=long_description,
+    long_description_content_type='text/markdown',
     url=about['__url__'],
     author=about['__author__'],
     author_email=about['__author_email__'],
     license=about['__license__'],
 
-    classifiers=[  # Optional
+    classifiers=[
         # How mature is this project? Common values are
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
         'Development Status :: 3 - Alpha',
-
         'Intended Audience :: Developers',
-
         'Topic :: Software Development :: Documentation',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content :: Wiki',
         'Topic :: Internet :: WWW/HTTP :: HTTP Servers',
         'Topic :: Text Processing',
         'Topic :: Utilities',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        "Programming Language :: Python :: 3",
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
     ],
-
-    keywords='readme markdown documentation',  # Optional
-
-    install_requires=['Markdown'],  # Optional
+    keywords='readme markdown documentation',
+    install_requires=['Markdown'],
     python_requires='>=3',
-    #exclude_package_data={'Note': ['Note']},
-
-    # List additional groups of dependencies here (e.g. development
-    # dependencies). Users will be able to install these using the "extras"
-    # syntax, for example:
-    #   $ pip install sampleproject[dev]
-    # Similar to `install_requires` above, these must be valid existing
-    # projects.
-    #extras_require={  # Optional
-    #    'dev': ['check-manifest'],
-    #    'test': ['coverage'],
-    #},
-
 )

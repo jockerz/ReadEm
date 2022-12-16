@@ -1,1 +1,0 @@
-IGNORED_ITEMS = ['.git', 'README.md']

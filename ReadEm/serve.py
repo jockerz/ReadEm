@@ -3,10 +3,9 @@ import argparse
 import codecs
 import html
 import io
-import mimetypes
 import os
+import pathlib
 import posixpath
-import time
 import shutil
 import sys
 import urllib.parse
@@ -14,58 +13,29 @@ from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from markdown import markdown
 
-from ReadEm.const import IGNORED_ITEMS
+IGNORED_ITEMS = ['.git', 'README.md']
+MD_FILES = [
+    "README.md", "readme.md", "README.markdown",
+    "readme.markdown"
+]
 
-HTML_TEMPLATE = """<!DOCTYPE html>
-<html>
-<head>
-    <title>{markdown_title}</title>
-    <style>{style}</style>
-</head>
-<body>
-    <div id="mySidenav" class="sidenav">
-        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-        {menu}
-        <hr/>
-        <small>
-        	<a class="repo-link" href="https://github.com/jockerz/ReadEm">About</a>
-        </small>
-    </div>
-    <span class="navbar" style="font-size:30px;cursor:pointer" onclick="openNav()">
-        <div class="main" style="padding: 10px;">
-            &#9776; Menu
-        </div>
-    </span>
-    <div class="main">
-        <div class="markdown-body" id="content">
-            {markdown_content}
-        </div>
-    </div>
-    {javascript}
-</body>
-</html>
-"""
+# ReadEm source directory
+BASEDIR = os.path.dirname(__file__)
 
 
-class CostumRequestHandler(SimpleHTTPRequestHandler):
-    """
-    SimpleHTTPRequestHandler alike for markdown file
-    features:
-    - add markdown_to_html method
-    - make special do_GET function treat .md file well
-    """
-    asset_path = os.path.join(os.path.dirname(__file__), 'assets')
-    base_path = os.getcwd()
+class MDRequestHandler(SimpleHTTPRequestHandler):
+    init_path = BASEDIR
+    asset_path = os.path.join(BASEDIR, 'assets')
+    tpl_path = os.path.join(BASEDIR, 'templates')
+    template_name = "default.html"
+    md_base_path = pathlib.Path.cwd()
 
     def get_asset(self, filename):
-        try:
-            f = open(os.path.join(self.asset_path, filename),
-                                  'r', encoding='utf-8')
+        with open(
+            os.path.join(self.asset_path, filename), 'r', encoding='utf-8'
+        ) as f:
             data = f.read()
-            f.close()
-            return data
-        except Exception as e:
-            raise e
+        return data
 
     def markdown_to_html(self, path):
         """
@@ -76,11 +46,8 @@ class CostumRequestHandler(SimpleHTTPRequestHandler):
         data = md.read()
         md.close()
         
-        js_data = "<script>"
-        js_data += self.get_asset('app.js') + "</script>"
-        
-        css_data = self.get_asset('github.css')
-        css_data += self.get_asset('app.css')
+        js_data = "<script>" + self.get_asset('app.js') + "</script>"
+        css_data = self.get_asset('github.css') + self.get_asset('app.css')
         
         enc = sys.getfilesystemencoding()
 
@@ -90,22 +57,22 @@ class CostumRequestHandler(SimpleHTTPRequestHandler):
             title_path, _ = posixpath.splitext(title_path)
             title_path = urllib.parse.unquote(title_path)
 
-        data = HTML_TEMPLATE.format(
-            markdown_title = title_path,
-            markdown_content = markdown(data, extensions=[
-                'attr_list',    # {: #someid .someclass somekey='some value' }
-                'fenced_code',  # github style syntax highlighting
-                'smarty',
-                'tables',
-            ]),
-            javascript = js_data,
-            menu = self.get_menu(),
-            style = css_data)
-
-        encoded = data.encode(enc, 'surrogateescape')
+        with open(os.path.join(self.tpl_path, self.template_name)) as fd:
+            data = fd.read().format(
+                markdown_title=title_path,
+                markdown_content=markdown(data, extensions=[
+                    'attr_list',    # {: #someid .someclass somekey='some value' }
+                    'fenced_code',  # github style syntax highlighting
+                    'smarty',
+                    'tables',
+                ]),
+                javascript=js_data,
+                menu=self.get_menu(),
+                style=css_data
+            )
 
         f = io.BytesIO()
-        f.write(encoded)
+        f.write(data.encode(enc, 'surrogateescape'))
         f.seek(0)
 
         self.send_response(HTTPStatus.OK)
@@ -119,49 +86,47 @@ class CostumRequestHandler(SimpleHTTPRequestHandler):
         """
         return html string of content list on directory,
         """
-        li_template = "<a href=\"{}\">{}</a>"
         path = self.translate_path(self.path)
         menu = []
 
         try:
             contents = os.listdir(os.path.dirname(path))
-            if os.path.dirname(path) != self.base_path:
-                contents.append("..")
-        except OSError as e:
+            if os.path.dirname(path) != str(self.md_base_path):
+                # fullname = os.path.join(os.path.dirname(self.path), content)
+                fullname = os.path.join(os.path.dirname(self.path), "..")
+                href = urllib.parse.quote(fullname, errors='surrogatepass')
+                menu.append(f"<a href=\"{href}\">Home</a>")
+
+            menu.append("<hr/>")
+        except OSError:
             return ""
         contents.sort(key=lambda a: a.lower())
-
-        enc = sys.getfilesystemencoding()
         
-        for c in contents:
-            fullname = os.path.join(os.path.dirname(self.path), c)
-            displayname = c
-            is_good = False
-
-            if c in IGNORED_ITEMS:
-            	continue
-            
-            if os.path.isdir(c):
-                displayname = c + "/"
-                is_good = True
-            
-            if os.path.islink(c):
-                displayname = c + "@"
-                is_good = True
-            
-            _, ext = posixpath.splitext(fullname)
-            if "md" in ext or "markdown" in ext:
-                displayname = c.replace(ext, "")
-                is_good = True
-
-            if not is_good:
+        for content in contents:
+            if content in IGNORED_ITEMS:
                 continue
-            
-            c = os.path.join(os.path.dirname(self.path), c)
 
-            menu.append(li_template.format(
-                urllib.parse.quote(c, errors='surrogatepass'), 
-                html.escape(displayname)))
+            if os.path.isdir(content):
+                display_name = content + "/"
+            elif os.path.islink(content):
+                display_name = content + "@"
+            else:
+                display_name = content
+
+            fullname = os.path.join(os.path.dirname(self.path), content)
+            fullpath = os.path.join(
+                self.md_base_path, fullname.replace(os.path.sep, "", 1)
+            )
+            _, ext = posixpath.splitext(fullname.lower())
+            if "md" in ext or "markdown" in ext:
+                display_name = content.replace(ext, "")
+            elif os.path.isfile(fullpath):
+                continue
+
+            menu.append(
+                f"<a href=\"{urllib.parse.quote(fullname, errors='surrogatepass')}\">"
+                f"{html.escape(display_name)}</a>"
+            )
         
         return "\n".join(menu)
 
@@ -173,23 +138,14 @@ class CostumRequestHandler(SimpleHTTPRequestHandler):
         """
         path = self.translate_path(self.path)
         if os.path.isdir(path):
-            readme_file1 = os.path.join(path, "README.md")
-            readme_file2 = os.path.join(path, "readme.md")
-            readme_file3 = os.path.join(path, "README.markdown")
-            readme_file4 = os.path.join(path, "readme.markdown")
-            if os.path.exists(readme_file1):
-                self.path = os.path.relpath(readme_file1)
-            elif os.path.exists(readme_file2):
-                self.path = os.path.relpath(readme_file2)
-            elif os.path.exists(readme_file3):
-                self.path = os.path.relpath(readme_file3)
-            elif os.path.exists(readme_file4):
-                self.path = os.path.relpath(readme_file4)
+            for file in MD_FILES:
+                file_path = os.path.join(path, file)
+                if os.path.exists(file_path):
+                    self.path = os.path.relpath(file_path)
         path = self.translate_path(self.path)
 
-        if (self.path.endswith("md") or \
-            self.path.endswith("markdown")) and \
-            os.path.exists(path):
+        if (self.path.endswith(".md") or self.path.endswith(".markdown")) \
+                and os.path.exists(path):
             md = self.markdown_to_html(path)
             try:
                 shutil.copyfileobj(md, self.wfile)
@@ -207,20 +163,22 @@ class CostumRequestHandler(SimpleHTTPRequestHandler):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--bind', '-b', default='127.0.0.1', metavar='ADDRESS',
+    parser.add_argument(
+        '--bind', '-b', default='127.0.0.1', metavar='ADDRESS',
         help='Specify alternate bind address '
-             '[default: 127.0.0.1]')
-    parser.add_argument('port', action='store',
-        default=8000, type=int,
-        nargs='?',
-        help='Specify alternate port [default: 8000]')
+             '[default: 127.0.0.1]'
+    )
+    parser.add_argument(
+        'port', action='store', default=8000, type=int,
+        nargs='?', help='Specify alternate port [default: 8000]'
+    )
     args = parser.parse_args()
 
-    httpd = HTTPServer((args.bind, args.port), CostumRequestHandler)
+    http = HTTPServer((args.bind, args.port), MDRequestHandler)
     try:
         print("Listening on http://{}:{}".format(args.bind, args.port))
         print("Press CTRL + c to stop")
-        httpd.serve_forever()
+        http.serve_forever()
     except KeyboardInterrupt:
         print("Stopped")
     except Exception as e:
